@@ -2,9 +2,15 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 
+import javafx.animation.Timeline;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.util.Duration;
 /**
  * Write a description of class Panel here.
  * 
@@ -29,6 +35,16 @@ public class Bola extends Application
         root.getChildren().add(circulo);
         Scene escena = new Scene(root,500, 500);
         escenario.setScene(escena);
+
+        final Timeline timeline = new Timeline();
+        timeline.setCycleCount(1);
+        timeline.setAutoReverse(false);
+        final KeyValue kv = new KeyValue(circulo.centerXProperty(), 700);
+        final KeyFrame kf = new KeyFrame(Duration.millis(5000), kv);
+        timeline.getKeyFrames().add(kf);
+        timeline.play();
+        
+        
         escenario.show();
     }
 }
