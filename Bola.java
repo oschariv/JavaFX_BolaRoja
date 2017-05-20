@@ -35,7 +35,7 @@ public class Bola extends Application
         Circle circulo = new Circle();
         circulo.setCenterX(250.0f);
         circulo.setCenterY(250.0f);
-        circulo.setRadius(50.0f);
+        circulo.setRadius(20.0f);
         circulo.setFill(Color.RED);
 
         Pane root = new Pane();
@@ -46,9 +46,10 @@ public class Bola extends Application
 
         final Timeline timeline = new Timeline();
         timeline.setAutoReverse(false);
-        final KeyFrame kf = new KeyFrame(Duration.millis(10), event ->{
+        final KeyFrame kf = new KeyFrame(Duration.millis(500), event ->{
                     circulo.setTranslateY(circulo.getTranslateY() + 1);
                     circulo.setTranslateX(circulo.getTranslateX() + 1);
+                    System.out.println(circulo.getBoundsInParent());
                 });
         timeline.setCycleCount(1000);
         timeline.getKeyFrames().add(kf);
