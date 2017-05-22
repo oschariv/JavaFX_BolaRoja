@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -15,6 +16,8 @@ import java.util.Random;
 
 import javafx.scene.shape.Rectangle;
 
+import javafx.scene.input.KeyEvent;
+
 /**
  * Write a description of class bola2 here.
  * 
@@ -24,6 +27,9 @@ import javafx.scene.shape.Rectangle;
 public class bola2 extends Application {
 	private static int ballSpeedX = 1;
 	private static int ballSpeedY = 1;
+	
+	private static boolean goWest;
+	private static boolean goEast;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -35,6 +41,7 @@ public class bola2 extends Application {
 		Pane root = new Pane();
 		Scene escena = new Scene(root, 500, 500);
 		escenario.setScene(escena);
+		escenario.setTitle("ARKANOID");
 
 		// Bola.
 		Circle circulo = new Circle();
@@ -60,10 +67,25 @@ public class bola2 extends Application {
 
 		root.getChildren().add(circulo);
 		root.getChildren().add(barra);
+		
+		// TECLADO:
+		escena.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            public void handle(KeyEvent event) {
+                switch (event.getCode()) {
+                    case LEFT:  
+                    	goWest  = true; 
+                    	goEast  = false;
+                    	break;
+                    case RIGHT: 
+                    	goWest  = false;
+                    	goEast  = true; 
+                }
+            }
+        });	
 
 		final Timeline timeline = new Timeline();
 		timeline.setAutoReverse(true);
-		final KeyFrame kf = new KeyFrame(Duration.millis(1.2), event -> {
+		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
 			if (circulo.getBoundsInParent().getMinX() <= 0
 					|| circulo.getBoundsInParent().getMaxX() >= escena.getWidth()) {
@@ -77,7 +99,13 @@ public class bola2 extends Application {
 			}
 			circulo.setTranslateY(circulo.getTranslateY() + ballSpeedY);
 			
-			barra.setTranslateX(barra.getTranslateX() + 0.5);
+			// Desplazamiento Barra			
+			if (goWest){
+					barra.setTranslateX(barra.getTranslateX() - 1);
+				}
+			else{
+				barra.setTranslateX(barra.getTranslateX() + 1);
+			}
 		});
 
 		timeline.setCycleCount(Timeline.INDEFINITE);
