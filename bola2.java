@@ -8,6 +8,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
 
 import javafx.animation.Timeline;
+import javafx.animation.Animation;
 
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
@@ -27,7 +28,9 @@ import javafx.scene.input.KeyEvent;
 public class bola2 extends Application {
 	private static int ballSpeedX = 1;
 	private static int ballSpeedY = 1;
-	
+
+	private static int barraSpeed = 1;
+
 	private static boolean goWest;
 	private static boolean goEast;
 
@@ -42,6 +45,7 @@ public class bola2 extends Application {
 		Scene escena = new Scene(root, 500, 500);
 		escenario.setScene(escena);
 		escenario.setTitle("ARKANOID");
+		final Timeline timeline = new Timeline();
 
 		// Bola.
 		Circle circulo = new Circle();
@@ -50,8 +54,8 @@ public class bola2 extends Application {
 
 		// Barra
 		Rectangle barra = new Rectangle();
-		barra.setX(200);
-		barra.setY(450);
+		barra.setX(escena.getWidth()/2);
+		barra.setY(escena.getHeight()-25);
 		barra.setWidth(100);
 		barra.setHeight(10);
 		barra.setArcWidth(20);
@@ -60,30 +64,39 @@ public class bola2 extends Application {
 
 		int yRandom = new Random().nextInt(480);
 		int xRandom = new Random().nextInt(480);
-		
-		//Centro de la bola
+
+		// Centro de la bola
 		circulo.setCenterX(circulo.getRadius() + xRandom);
 		circulo.setCenterY(circulo.getRadius() + yRandom);
 
+		// Adhesiones al panel
 		root.getChildren().add(circulo);
 		root.getChildren().add(barra);
-		
-		// TECLADO:
-		escena.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            public void handle(KeyEvent event) {
-                switch (event.getCode()) {
-                    case LEFT:  
-                    	goWest  = true; 
-                    	goEast  = false;
-                    	break;
-                    case RIGHT: 
-                    	goWest  = false;
-                    	goEast  = true; 
-                }
-            }
-        });	
 
-		final Timeline timeline = new Timeline();
+		// TECLADO:
+		escena.setOnKeyPressed(event -> {
+			switch (event.getCode()) {
+			case LEFT:
+				goWest = true;
+				goEast = false;
+				break;
+			case RIGHT:
+				goWest = false;
+				goEast = true;
+				break;
+			case P:
+				if(timeline.getStatus().equals(Animation.Status.RUNNING)){
+                    timeline.stop();
+                    escenario.setTitle("ARKANOID(PAUSE)");
+                }
+                else{
+                    timeline.play();
+                    escenario.setTitle("ARKANOID");
+                }
+			}
+		});
+
+		
 		timeline.setAutoReverse(true);
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
@@ -98,14 +111,19 @@ public class bola2 extends Application {
 				ballSpeedY *= -1;
 			}
 			circulo.setTranslateY(circulo.getTranslateY() + ballSpeedY);
-			
-			// Desplazamiento Barra			
-			if (goWest){
-					barra.setTranslateX(barra.getTranslateX() - 1);
-				}
-			else{
-				barra.setTranslateX(barra.getTranslateX() + 1);
+
+			// Desplazamiento Barra
+			if (goWest) {
+				barra.setTranslateX(barra.getTranslateX() - barraSpeed);
+			} else {
+				barra.setTranslateX(barra.getTranslateX() + barraSpeed);
 			}
+			
+			if (circulo.getBoundsInParent().intersects(barra.getBoundsInParent())){
+				//ballSpeedX *= -1;
+				ballSpeedY *= -1;
+			}
+			
 		});
 
 		timeline.setCycleCount(Timeline.INDEFINITE);
