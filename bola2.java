@@ -19,6 +19,11 @@ import javafx.scene.shape.Rectangle;
 
 import javafx.scene.input.KeyEvent;
 
+import javafx.scene.control.Label;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
+
 /**
  * Write a description of class bola2 here.
  * 
@@ -31,8 +36,9 @@ public class bola2 extends Application {
 
 	private static int barraSpeed = 1;
 
-	private static boolean goWest;
-	private static boolean goEast;
+	private static boolean goLeft;
+	private static boolean goRight;
+	
 
 	public static void main(String[] args) {
 		launch(args);
@@ -49,13 +55,13 @@ public class bola2 extends Application {
 
 		// Bola.
 		Circle circulo = new Circle();
-		circulo.setRadius(20);
+		circulo.setRadius(10);
 		circulo.setFill(Color.RED);
 
 		// Barra
 		Rectangle barra = new Rectangle();
-		barra.setX(escena.getWidth()/2);
-		barra.setY(escena.getHeight()-25);
+		barra.setX(escena.getWidth() / 2);
+		barra.setY(escena.getHeight() - 25);
 		barra.setWidth(100);
 		barra.setHeight(10);
 		barra.setArcWidth(20);
@@ -77,26 +83,32 @@ public class bola2 extends Application {
 		escena.setOnKeyPressed(event -> {
 			switch (event.getCode()) {
 			case LEFT:
-				goWest = true;
-				goEast = false;
+				// Cambia la velocidad de la barra al pulsar la tecla.
+				if (barra.getBoundsInParent().getMaxX() == escena.getWidth()){
+					barraSpeed = 1;
+				}
+				goLeft = true;
+				goRight = false;
 				break;
 			case RIGHT:
-				goWest = false;
-				goEast = true;
+				// Cambia la velocidad de la barra al pulsar la tecla.
+				if (barra.getBoundsInParent().getMinX() == 0){
+					barraSpeed = 1;
+				}
+				goLeft = false;
+				goRight = true;
 				break;
 			case P:
-				if(timeline.getStatus().equals(Animation.Status.RUNNING)){
-                    timeline.stop();
-                    escenario.setTitle("ARKANOID(PAUSE)");
-                }
-                else{
-                    timeline.play();
-                    escenario.setTitle("ARKANOID");
-                }
+				if (timeline.getStatus().equals(Animation.Status.RUNNING)) {
+					timeline.stop();
+					escenario.setTitle("ARKANOID (PAUSE)");
+				} else {
+					timeline.play();
+					escenario.setTitle("ARKANOID");
+				}
 			}
 		});
 
-		
 		timeline.setAutoReverse(true);
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
@@ -106,24 +118,48 @@ public class bola2 extends Application {
 			}
 			circulo.setTranslateX(circulo.getTranslateX() + ballSpeedX);
 
-			if (circulo.getBoundsInParent().getMinY() <= 0
-					|| circulo.getBoundsInParent().getMaxY() >= escena.getHeight()) {
+			if (circulo.getBoundsInParent().getMinY() <= 0) {
 				ballSpeedY *= -1;
 			}
 			circulo.setTranslateY(circulo.getTranslateY() + ballSpeedY);
 
 			// Desplazamiento Barra
-			if (goWest) {
+			if (goLeft) {
 				barra.setTranslateX(barra.getTranslateX() - barraSpeed);
 			} else {
 				barra.setTranslateX(barra.getTranslateX() + barraSpeed);
 			}
-			
-			if (circulo.getBoundsInParent().intersects(barra.getBoundsInParent())){
-				//ballSpeedX *= -1;
+
+			// REBOTE BARRA
+			if (barra.getBoundsInParent().getMinX() <= 0 || barra.getBoundsInParent().getMaxX() >= escena.getWidth()) {
+				barraSpeed = 0;
+			}
+
+			// if (circulo.getBoundsInParent().getMaxY() ==
+			// barra.getBoundsInParent().getMinY()) {
+			// if ((circulo.getBoundsInParent().getMinX() + circulo.getRadius())
+			// >= barra.getBoundsInParent().getMinX()
+			// && circulo.getBoundsInParent().getMinX() <=
+			// barra.getBoundsInParent().getMaxX()) {
+			// // La bola esta sobre la plataforma
+			// ballSpeedY *= -1;
+			// }
+			// }
+
+			if (circulo.getBoundsInParent().intersects(barra.getBoundsInParent())) {
 				ballSpeedY *= -1;
 			}
-			
+
+			if (circulo.getBoundsInParent().getMinY() > escena.getHeight()) {
+				Label GOMessage = new Label("GAME OVER!");
+				GOMessage.setFont(Font.font("Courier New", FontWeight.BOLD, 62));
+				root.getChildren().add(GOMessage);
+				GOMessage.layoutXProperty().bind(root.widthProperty().subtract(GOMessage.widthProperty()).divide(2));
+				GOMessage.layoutYProperty().bind(root.heightProperty().subtract(GOMessage.heightProperty()).divide(2));
+				escenario.setTitle("ARKANOID (GAME OVER)");
+				timeline.stop();
+			}
+
 		});
 
 		timeline.setCycleCount(Timeline.INDEFINITE);
