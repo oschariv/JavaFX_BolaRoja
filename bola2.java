@@ -23,6 +23,8 @@ import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Write a description of class bola2 here.
@@ -39,6 +41,8 @@ public class bola2 extends Application {
 	private static boolean goLeft;
 	private static boolean goRight;
 	
+	private int tiempoEnSegundos = 0;
+	
 
 	public static void main(String[] args) {
 		launch(args);
@@ -46,11 +50,13 @@ public class bola2 extends Application {
 
 	@Override
 	public void start(Stage escenario) {
-
+		// Escena, panel y escenario.
 		Pane root = new Pane();
 		Scene escena = new Scene(root, 500, 500);
 		escenario.setScene(escena);
 		escenario.setTitle("ARKANOID");
+		
+		//Inicializacion de la linea de tiempo
 		final Timeline timeline = new Timeline();
 
 		// Bola.
@@ -67,7 +73,14 @@ public class bola2 extends Application {
 		barra.setArcWidth(20);
 		barra.setArcHeight(20);
 		barra.setFill(Color.BLUE);
-
+		
+		
+		
+		// Label para cronometro
+		Label tiempoPasado = new Label("0");
+		root.getChildren().add(tiempoPasado);
+		
+		// Posicion x e y random
 		int yRandom = new Random().nextInt(480);
 		int xRandom = new Random().nextInt(480);
 
@@ -112,12 +125,14 @@ public class bola2 extends Application {
 		timeline.setAutoReverse(true);
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
+				// Desplazamiento en X
 			if (circulo.getBoundsInParent().getMinX() <= 0
 					|| circulo.getBoundsInParent().getMaxX() >= escena.getWidth()) {
 				ballSpeedX *= -1;
 			}
 			circulo.setTranslateX(circulo.getTranslateX() + ballSpeedX);
-
+			
+				// Desplazamiento en Y
 			if (circulo.getBoundsInParent().getMinY() <= 0) {
 				ballSpeedY *= -1;
 			}
@@ -135,17 +150,6 @@ public class bola2 extends Application {
 				barraSpeed = 0;
 			}
 
-			// if (circulo.getBoundsInParent().getMaxY() ==
-			// barra.getBoundsInParent().getMinY()) {
-			// if ((circulo.getBoundsInParent().getMinX() + circulo.getRadius())
-			// >= barra.getBoundsInParent().getMinX()
-			// && circulo.getBoundsInParent().getMinX() <=
-			// barra.getBoundsInParent().getMaxX()) {
-			// // La bola esta sobre la plataforma
-			// ballSpeedY *= -1;
-			// }
-			// }
-
 			if (circulo.getBoundsInParent().intersects(barra.getBoundsInParent())) {
 				ballSpeedY *= -1;
 			}
@@ -159,6 +163,10 @@ public class bola2 extends Application {
 				escenario.setTitle("ARKANOID (GAME OVER)");
 				timeline.stop();
 			}
+			// Actualizamos la etiqueta del tiempo
+			int minutos = tiempoEnSegundos/60;
+			int segundos = tiempoEnSegundos%60;
+			tiempoPasado.setText(String.valueOf(minutos) + " : " + String.valueOf(segundos));
 
 		});
 
@@ -168,5 +176,15 @@ public class bola2 extends Application {
 		timeline.play();
 
 		escenario.show();
+		
+		
+		TimerTask cronometro = new TimerTask(){
+			@Override
+			public void run(){
+				tiempoEnSegundos++;
+			}
+		};
+		Timer timer = new Timer();
+		timer.schedule(cronometro, 0, 1000);
 	}
 }
