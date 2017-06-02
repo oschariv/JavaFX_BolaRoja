@@ -35,7 +35,7 @@ import java.util.ArrayList;
  * @author Oscar Charro Rivera
  * @version 1.0
  */
-public class bola2 extends Application {
+public class main extends Application {
 	private static int ballSpeedX = 1;
 	private static int ballSpeedY = 1;
 
