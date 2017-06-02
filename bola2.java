@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -16,7 +17,7 @@ import javafx.util.Duration;
 import java.util.Random;
 
 import javafx.scene.shape.Rectangle;
-
+import javafx.scene.shape.Shape;
 import javafx.scene.input.KeyEvent;
 
 import javafx.scene.control.Label;
@@ -26,11 +27,13 @@ import javafx.scene.text.FontWeight;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import java.util.ArrayList;
+
 /**
- * Write a description of class bola2 here.
+ * Desarrollo del Arkanoid Clasico mediante Java FX.
  * 
- * @author (your name)
- * @version (a version number or a date)
+ * @author Oscar Charro Rivera
+ * @version 1.0
  */
 public class bola2 extends Application {
 	private static int ballSpeedX = 1;
@@ -40,9 +43,20 @@ public class bola2 extends Application {
 
 	private static boolean goLeft;
 	private static boolean goRight;
-	
+
+	private static final int ANCHO_LADRILLOS = 40;
+	private static final int ALTO_LADRILLOS = 8;
+	private static final int NUMERO_LADRILLOS = 50;
+
+	private static final int ANCHO_PANTALLA = 600;
+	private static final int ALTO_PANTALLA = 500;
+	private static final int ALTO_BARRA_SUPERIOR = 40;
+
 	private int tiempoEnSegundos = 0;
+
+	private ArrayList<Rectangle> ladrillos;
 	
+	private int puntos = 0;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -52,11 +66,13 @@ public class bola2 extends Application {
 	public void start(Stage escenario) {
 		// Escena, panel y escenario.
 		Pane root = new Pane();
-		Scene escena = new Scene(root, 500, 500);
+		Scene escena = new Scene(root, ANCHO_PANTALLA, ALTO_PANTALLA);
 		escenario.setScene(escena);
 		escenario.setTitle("ARKANOID");
-		
-		//Inicializacion de la linea de tiempo
+
+		Random aleatorio = new Random();
+
+		// Inicializacion de la linea de tiempo
 		final Timeline timeline = new Timeline();
 
 		// Bola.
@@ -73,20 +89,61 @@ public class bola2 extends Application {
 		barra.setArcWidth(20);
 		barra.setArcHeight(20);
 		barra.setFill(Color.BLUE);
-		
-		
-		
+
 		// Label para cronometro
 		Label tiempoPasado = new Label("0");
 		root.getChildren().add(tiempoPasado);
-		
+
+		// Label para puntuacion
+		Label puntuacion = new Label("0");
+		root.getChildren().add(puntuacion);
+
 		// Posicion x e y random
-		int yRandom = new Random().nextInt(480);
-		int xRandom = new Random().nextInt(480);
+		int yRandom = aleatorio.nextInt(ALTO_PANTALLA - 20);
+		int xRandom = aleatorio.nextInt(ANCHO_PANTALLA - 20);
 
 		// Centro de la bola
 		circulo.setCenterX(circulo.getRadius() + xRandom);
 		circulo.setCenterY(circulo.getRadius() + yRandom);
+
+		// Ladrillos
+		ladrillos = new ArrayList<>();
+		int numeroLadrillosAnidados = 0;
+		while (numeroLadrillosAnidados < NUMERO_LADRILLOS) {
+
+			boolean encontradoLadrilloValido = false;
+			while (!encontradoLadrilloValido) {
+
+				// Poscion ladrillo aleatoria
+				int posXLadrillo = aleatorio.nextInt(ANCHO_PANTALLA - ANCHO_LADRILLOS);
+				int posYLadrillo = aleatorio.nextInt((ALTO_PANTALLA / 2) + ALTO_BARRA_SUPERIOR);
+
+				Rectangle posibleLadrillo = new Rectangle(ANCHO_LADRILLOS, ALTO_LADRILLOS, Color.GREEN);
+				posibleLadrillo.setStroke(Color.BLACK);
+				posibleLadrillo.setVisible(false);
+				posibleLadrillo.setX(posXLadrillo);
+				posibleLadrillo.setY(posYLadrillo);
+
+				int ladrilloActual = 0;
+				boolean solapamientoDetectado = false;
+				while (ladrilloActual < ladrillos.size() && !solapamientoDetectado) {
+					Shape interseccion = Shape.intersect(posibleLadrillo, ladrillos.get(ladrilloActual));
+					if (interseccion.getBoundsInParent().getWidth() != -1) {
+						solapamientoDetectado = true;
+					}
+					ladrilloActual++;
+				}
+
+				// Si hemos encontrado un ladrillo
+				if (!solapamientoDetectado) {
+					encontradoLadrilloValido = true;
+					posibleLadrillo.setVisible(true);
+					ladrillos.add(posibleLadrillo);
+					root.getChildren().add(posibleLadrillo);
+				}
+			}
+			numeroLadrillosAnidados++;
+		}
 
 		// Adhesiones al panel
 		root.getChildren().add(circulo);
@@ -97,7 +154,7 @@ public class bola2 extends Application {
 			switch (event.getCode()) {
 			case LEFT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
-				if (barra.getBoundsInParent().getMaxX() == escena.getWidth()){
+				if (barra.getBoundsInParent().getMaxX() == escena.getWidth()) {
 					barraSpeed = 1;
 				}
 				goLeft = true;
@@ -105,7 +162,7 @@ public class bola2 extends Application {
 				break;
 			case RIGHT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
-				if (barra.getBoundsInParent().getMinX() == 0){
+				if (barra.getBoundsInParent().getMinX() == 0) {
 					barraSpeed = 1;
 				}
 				goLeft = false;
@@ -125,14 +182,14 @@ public class bola2 extends Application {
 		timeline.setAutoReverse(true);
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
-				// Desplazamiento en X
+			// Desplazamiento en X
 			if (circulo.getBoundsInParent().getMinX() <= 0
 					|| circulo.getBoundsInParent().getMaxX() >= escena.getWidth()) {
 				ballSpeedX *= -1;
 			}
 			circulo.setTranslateX(circulo.getTranslateX() + ballSpeedX);
-			
-				// Desplazamiento en Y
+
+			// Desplazamiento en Y
 			if (circulo.getBoundsInParent().getMinY() <= 0) {
 				ballSpeedY *= -1;
 			}
@@ -164,9 +221,25 @@ public class bola2 extends Application {
 				timeline.stop();
 			}
 			// Actualizamos la etiqueta del tiempo
-			int minutos = tiempoEnSegundos/60;
-			int segundos = tiempoEnSegundos%60;
+			int minutos = tiempoEnSegundos / 60;
+			int segundos = tiempoEnSegundos % 60;
+
 			tiempoPasado.setText(String.valueOf(minutos) + " : " + String.valueOf(segundos));
+
+			// Desctruccion ladrillos
+			for (int i = 0; i < ladrillos.size(); i++) {
+				Rectangle ladrilloAComprobar = ladrillos.get(i);
+				Shape interseccion = Shape.intersect(circulo, ladrilloAComprobar);
+				if (interseccion.getBoundsInParent().getWidth() != -1) {
+					root.getChildren().remove(ladrilloAComprobar);
+					ladrillos.remove(ladrilloAComprobar);
+					ballSpeedY *= -1;
+					puntos++;
+					i--;
+				}
+			}
+			puntuacion.setText(String.valueOf(puntos));
+			puntuacion.setLayoutX(ANCHO_PANTALLA - 20);
 
 		});
 
@@ -176,11 +249,10 @@ public class bola2 extends Application {
 		timeline.play();
 
 		escenario.show();
-		
-		
-		TimerTask cronometro = new TimerTask(){
+
+		TimerTask cronometro = new TimerTask() {
 			@Override
-			public void run(){
+			public void run() {
 				tiempoEnSegundos++;
 			}
 		};
