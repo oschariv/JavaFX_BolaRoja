@@ -1,33 +1,22 @@
-import javafx.application.Application;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
+package main;
 
-import javafx.scene.shape.Circle;
-import javafx.scene.paint.Color;
-
-import javafx.animation.Timeline;
-import javafx.animation.Animation;
-
-import javafx.animation.KeyFrame;
-import javafx.util.Duration;
-
+import java.util.ArrayList;
 import java.util.Random;
-
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
-import javafx.scene.input.KeyEvent;
-
-import javafx.scene.control.Label;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
-import java.util.ArrayList;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * Desarrollo del Arkanoid Clasico mediante Java FX.
@@ -36,16 +25,10 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class main extends Application {
-	private static int ballSpeedX = 1;
-	private static int ballSpeedY = 1;
-
-	private static int barraSpeed = 1;
 
 	private static boolean goLeft;
 	private static boolean goRight;
 
-	private static final int ANCHO_LADRILLOS = 40;
-	private static final int ALTO_LADRILLOS = 8;
 	private static final int NUMERO_LADRILLOS = 50;
 
 	private static final int ANCHO_PANTALLA = 600;
@@ -54,8 +37,8 @@ public class main extends Application {
 
 	private int tiempoEnSegundos = 0;
 
-	private ArrayList<Rectangle> ladrillos;
-	
+	private ArrayList<Ladrillo> ladrillos;
+
 	private int puntos = 0;
 
 	public static void main(String[] args) {
@@ -76,19 +59,14 @@ public class main extends Application {
 		final Timeline timeline = new Timeline();
 
 		// Bola.
-		Circle circulo = new Circle();
-		circulo.setRadius(10);
-		circulo.setFill(Color.RED);
+		Bola bola = new Bola();
+		bola.setCenterX(ANCHO_PANTALLA / 2 - bola.getRadioBola());
+		bola.setCenterY(ALTO_PANTALLA - (bola.getRadioBola() * 4));
 
 		// Barra
-		Rectangle barra = new Rectangle();
+		Plataforma barra = new Plataforma();
 		barra.setX(escena.getWidth() / 2);
 		barra.setY(escena.getHeight() - 25);
-		barra.setWidth(100);
-		barra.setHeight(10);
-		barra.setArcWidth(20);
-		barra.setArcHeight(20);
-		barra.setFill(Color.BLUE);
 
 		// Label para cronometro
 		Label tiempoPasado = new Label("0");
@@ -98,13 +76,7 @@ public class main extends Application {
 		Label puntuacion = new Label("0");
 		root.getChildren().add(puntuacion);
 
-		// Posicion x e y random
-		int yRandom = aleatorio.nextInt(ALTO_PANTALLA - 20);
-		int xRandom = aleatorio.nextInt(ANCHO_PANTALLA - 20);
-
 		// Centro de la bola
-		circulo.setCenterX(circulo.getRadius() + xRandom);
-		circulo.setCenterY(circulo.getRadius() + yRandom);
 
 		// Ladrillos
 		ladrillos = new ArrayList<>();
@@ -115,11 +87,10 @@ public class main extends Application {
 			while (!encontradoLadrilloValido) {
 
 				// Poscion ladrillo aleatoria
-				int posXLadrillo = aleatorio.nextInt(ANCHO_PANTALLA - ANCHO_LADRILLOS);
-				int posYLadrillo = aleatorio.nextInt((ALTO_PANTALLA / 2) + ALTO_BARRA_SUPERIOR);
+				int posXLadrillo = aleatorio.nextInt(ANCHO_PANTALLA - Ladrillo.getAnchoLadrillo());
+				int posYLadrillo = aleatorio.nextInt((ALTO_PANTALLA / 2) + Ladrillo.getAltoLadrillo());
 
-				Rectangle posibleLadrillo = new Rectangle(ANCHO_LADRILLOS, ALTO_LADRILLOS, Color.GREEN);
-				posibleLadrillo.setStroke(Color.BLACK);
+				Ladrillo posibleLadrillo = new Ladrillo();
 				posibleLadrillo.setVisible(false);
 				posibleLadrillo.setX(posXLadrillo);
 				posibleLadrillo.setY(posYLadrillo);
@@ -146,7 +117,7 @@ public class main extends Application {
 		}
 
 		// Adhesiones al panel
-		root.getChildren().add(circulo);
+		root.getChildren().add(bola);
 		root.getChildren().add(barra);
 
 		// TECLADO:
@@ -155,7 +126,7 @@ public class main extends Application {
 			case LEFT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
 				if (barra.getBoundsInParent().getMaxX() == escena.getWidth()) {
-					barraSpeed = 1;
+					barra.setBarraSpeed(1);
 				}
 				goLeft = true;
 				goRight = false;
@@ -163,7 +134,7 @@ public class main extends Application {
 			case RIGHT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
 				if (barra.getBoundsInParent().getMinX() == 0) {
-					barraSpeed = 1;
+					barra.setBarraSpeed(1);
 				}
 				goLeft = false;
 				goRight = true;
@@ -183,35 +154,34 @@ public class main extends Application {
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
 			// Desplazamiento en X
-			if (circulo.getBoundsInParent().getMinX() <= 0
-					|| circulo.getBoundsInParent().getMaxX() >= escena.getWidth()) {
-				ballSpeedX *= -1;
+			if (bola.getBoundsInParent().getMinX() <= 0 || bola.getBoundsInParent().getMaxX() >= escena.getWidth()) {
+				bola.setBallSpeedX();
 			}
-			circulo.setTranslateX(circulo.getTranslateX() + ballSpeedX);
+			bola.setTranslateX(bola.getTranslateX() + bola.getBallSpeedX());
 
 			// Desplazamiento en Y
-			if (circulo.getBoundsInParent().getMinY() <= 0) {
-				ballSpeedY *= -1;
+			if (bola.getBoundsInParent().getMinY() <= 0) {
+				bola.setBallSpeedY();
 			}
-			circulo.setTranslateY(circulo.getTranslateY() + ballSpeedY);
+			bola.setTranslateY(bola.getTranslateY() + bola.getBallSpeedY());
 
 			// Desplazamiento Barra
 			if (goLeft) {
-				barra.setTranslateX(barra.getTranslateX() - barraSpeed);
+				barra.setTranslateX(barra.getTranslateX() - barra.getBarraSpeed());
 			} else {
-				barra.setTranslateX(barra.getTranslateX() + barraSpeed);
+				barra.setTranslateX(barra.getTranslateX() + barra.getBarraSpeed());
 			}
 
 			// REBOTE BARRA
 			if (barra.getBoundsInParent().getMinX() <= 0 || barra.getBoundsInParent().getMaxX() >= escena.getWidth()) {
-				barraSpeed = 0;
+				barra.setBarraSpeed(0);
 			}
 
-			if (circulo.getBoundsInParent().intersects(barra.getBoundsInParent())) {
-				ballSpeedY *= -1;
+			if (bola.getBoundsInParent().intersects(barra.getBoundsInParent())) {
+				bola.setBallSpeedY();
 			}
 
-			if (circulo.getBoundsInParent().getMinY() > escena.getHeight()) {
+			if (bola.getBoundsInParent().getMinY() > escena.getHeight()) {
 				Label GOMessage = new Label("GAME OVER!");
 				GOMessage.setFont(Font.font("Courier New", FontWeight.BOLD, 62));
 				root.getChildren().add(GOMessage);
@@ -228,12 +198,12 @@ public class main extends Application {
 
 			// Desctruccion ladrillos
 			for (int i = 0; i < ladrillos.size(); i++) {
-				Rectangle ladrilloAComprobar = ladrillos.get(i);
-				Shape interseccion = Shape.intersect(circulo, ladrilloAComprobar);
+				Ladrillo ladrilloAComprobar = ladrillos.get(i);
+				Shape interseccion = Shape.intersect(bola, ladrilloAComprobar);
 				if (interseccion.getBoundsInParent().getWidth() != -1) {
 					root.getChildren().remove(ladrilloAComprobar);
 					ladrillos.remove(ladrilloAComprobar);
-					ballSpeedY *= -1;
+					bola.setBallSpeedY();
 					puntos++;
 					i--;
 				}
