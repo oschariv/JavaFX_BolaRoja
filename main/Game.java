@@ -24,16 +24,16 @@ import javafx.util.Duration;
  * @author Oscar Charro Rivera
  * @version 1.0
  */
-public class main extends Application {
+public class Game extends Application {
 
 	private static boolean goLeft;
+	@SuppressWarnings("unused")
 	private static boolean goRight;
 
 	private static final int NUMERO_LADRILLOS = 50;
 
 	private static final int ANCHO_PANTALLA = 600;
 	private static final int ALTO_PANTALLA = 500;
-	private static final int ALTO_BARRA_SUPERIOR = 40;
 
 	private int tiempoEnSegundos = 0;
 
@@ -45,6 +45,7 @@ public class main extends Application {
 		launch(args);
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	public void start(Stage escenario) {
 		// Escena, panel y escenario.
@@ -59,14 +60,11 @@ public class main extends Application {
 		final Timeline timeline = new Timeline();
 
 		// Bola.
-		Bola bola = new Bola();
-		bola.setCenterX(ANCHO_PANTALLA / 2 - bola.getRadioBola());
-		bola.setCenterY(ALTO_PANTALLA - (bola.getRadioBola() * 4));
+		Bola bola = new Bola(ANCHO_PANTALLA / 2 - Bola.getRadioBola(), ALTO_PANTALLA - (Bola.getRadioBola() * 4),
+				ANCHO_PANTALLA);
 
 		// Barra
-		Plataforma barra = new Plataforma();
-		barra.setX(escena.getWidth() / 2);
-		barra.setY(escena.getHeight() - 25);
+		Plataforma barra = new Plataforma(escena.getWidth() / 2, escena.getHeight() - 30, ANCHO_PANTALLA);
 
 		// Label para cronometro
 		Label tiempoPasado = new Label("0");
@@ -90,10 +88,8 @@ public class main extends Application {
 				int posXLadrillo = aleatorio.nextInt(ANCHO_PANTALLA - Ladrillo.getAnchoLadrillo());
 				int posYLadrillo = aleatorio.nextInt((ALTO_PANTALLA / 2) + Ladrillo.getAltoLadrillo());
 
-				Ladrillo posibleLadrillo = new Ladrillo();
+				Ladrillo posibleLadrillo = new Ladrillo(posXLadrillo, posYLadrillo);
 				posibleLadrillo.setVisible(false);
-				posibleLadrillo.setX(posXLadrillo);
-				posibleLadrillo.setY(posYLadrillo);
 
 				int ladrilloActual = 0;
 				boolean solapamientoDetectado = false;
@@ -104,11 +100,10 @@ public class main extends Application {
 					}
 					ladrilloActual++;
 				}
-
 				// Si hemos encontrado un ladrillo
 				if (!solapamientoDetectado) {
 					encontradoLadrilloValido = true;
-					posibleLadrillo.setVisible(true);
+					posibleLadrillo.setItVisible(true);
 					ladrillos.add(posibleLadrillo);
 					root.getChildren().add(posibleLadrillo);
 				}
@@ -125,17 +120,13 @@ public class main extends Application {
 			switch (event.getCode()) {
 			case LEFT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
-				if (barra.getBoundsInParent().getMaxX() == escena.getWidth()) {
-					barra.setBarraSpeed(1);
-				}
+				barra.movimientoIzquierda();
 				goLeft = true;
 				goRight = false;
 				break;
 			case RIGHT:
 				// Cambia la velocidad de la barra al pulsar la tecla.
-				if (barra.getBoundsInParent().getMinX() == 0) {
-					barra.setBarraSpeed(1);
-				}
+				barra.movimientoDerecha();
 				goLeft = false;
 				goRight = true;
 				break;
@@ -154,34 +145,25 @@ public class main extends Application {
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
 			// Desplazamiento en X
-			if (bola.getBoundsInParent().getMinX() <= 0 || bola.getBoundsInParent().getMaxX() >= escena.getWidth()) {
-				bola.setBallSpeedX();
-			}
-			bola.setTranslateX(bola.getTranslateX() + bola.getBallSpeedX());
-
+			bola.movimientoEnX();
 			// Desplazamiento en Y
-			if (bola.getBoundsInParent().getMinY() <= 0) {
-				bola.setBallSpeedY();
-			}
-			bola.setTranslateY(bola.getTranslateY() + bola.getBallSpeedY());
+			bola.movimientoEnY();
 
 			// Desplazamiento Barra
 			if (goLeft) {
-				barra.setTranslateX(barra.getTranslateX() - barra.getBarraSpeed());
+				barra.direccionIzquierda();
 			} else {
-				barra.setTranslateX(barra.getTranslateX() + barra.getBarraSpeed());
+				barra.direccionDerecha();
 			}
 
-			// REBOTE BARRA
-			if (barra.getBoundsInParent().getMinX() <= 0 || barra.getBoundsInParent().getMaxX() >= escena.getWidth()) {
-				barra.setBarraSpeed(0);
-			}
+			// NO REBOTE BARRA
+			barra.mover();
 
-			if (bola.getBoundsInParent().intersects(barra.getBoundsInParent())) {
-				bola.setBallSpeedY();
-			}
+			// REBOTE BOLA BARRA
+			bola.reboteConBarra(barra);
 
-			if (bola.getBoundsInParent().getMinY() > escena.getHeight()) {
+			// SALIDA BOLA POR DEBAJO DE LA PANTALLA.
+			if (bola.getBoundsInParent().getMinY() > ALTO_PANTALLA) {
 				Label GOMessage = new Label("GAME OVER!");
 				GOMessage.setFont(Font.font("Courier New", FontWeight.BOLD, 62));
 				root.getChildren().add(GOMessage);
@@ -190,11 +172,14 @@ public class main extends Application {
 				escenario.setTitle("ARKANOID (GAME OVER)");
 				timeline.stop();
 			}
+
 			// Actualizamos la etiqueta del tiempo
 			int minutos = tiempoEnSegundos / 60;
 			int segundos = tiempoEnSegundos % 60;
 
 			tiempoPasado.setText(String.valueOf(minutos) + " : " + String.valueOf(segundos));
+			tiempoPasado.setLayoutX(15);
+			tiempoPasado.setLayoutY(ALTO_PANTALLA - 20);
 
 			// Desctruccion ladrillos
 			for (int i = 0; i < ladrillos.size(); i++) {
@@ -210,6 +195,7 @@ public class main extends Application {
 			}
 			puntuacion.setText(String.valueOf(puntos));
 			puntuacion.setLayoutX(ANCHO_PANTALLA - 20);
+			puntuacion.setLayoutY(ALTO_PANTALLA - 20);
 
 		});
 
@@ -229,4 +215,5 @@ public class main extends Application {
 		Timer timer = new Timer();
 		timer.schedule(cronometro, 0, 1000);
 	}
+
 }

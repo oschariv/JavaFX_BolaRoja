@@ -9,25 +9,19 @@ public class Plataforma extends Rectangle {
 	private static final int ALTO_PLATAFORMA = 10;
 	private static final Color COLOR_PLATAFORMA = Color.BLUE;
 	private static final int ARCO_PLATAFORMA = 20;
-
-	private static int posicionX;
-	private static int posicionY;
-
 	private static int barraSpeed = 1;
+	private int limiteXPantalla;
 
-	private Rectangle plataforma;
-
-	public Plataforma() {
+	public Plataforma(double posicionX, double poscionY, int limiteXPantalla) {
 		super();
 		setWidth(ANCHO_PLATAFORMA);
 		setHeight(ALTO_PLATAFORMA);
 		setFill(COLOR_PLATAFORMA);
 		setArcWidth(ARCO_PLATAFORMA);
 		setArcHeight(ARCO_PLATAFORMA);
-	}
-
-	public Rectangle getPlataforma() {
-		return plataforma;
+		setX(posicionX);
+		setY(poscionY);
+		this.limiteXPantalla = limiteXPantalla;
 	}
 
 	public static int getArcoPlataforma() {
@@ -46,31 +40,33 @@ public class Plataforma extends Rectangle {
 		return COLOR_PLATAFORMA;
 	}
 
-	public static int getPosicionX() {
-		return posicionX;
-	}
-
-	public static void setPosicionX(int posicionX) {
-		Plataforma.posicionX = posicionX;
-	}
-
-	public static int getPosicionY() {
-		return posicionY;
-	}
-
-	public static void setPosicionY(int posicionY) {
-		Plataforma.posicionY = posicionY;
-	}
-
-	public void setPlataforma(Plataforma plataforma) {
-		this.plataforma = plataforma;
-	}
-
-	public static int getBarraSpeed() {
-		return barraSpeed;
-	}
-
 	public static void setBarraSpeed(int barraSpeed) {
 		Plataforma.barraSpeed = barraSpeed;
+	}
+
+	public void mover() {
+		if (getBoundsInParent().getMinX() == 0 || getBoundsInParent().getMaxX() == limiteXPantalla) {
+			setBarraSpeed(0);
+		}
+	}
+
+	public void movimientoIzquierda() {
+		if (getBoundsInParent().getMaxX() == limiteXPantalla) {
+			setBarraSpeed(1);
+		}
+	}
+
+	public void movimientoDerecha() {
+		if (getBoundsInParent().getMinX() == 0) {
+			setBarraSpeed(1);
+		}
+	}
+
+	public void direccionDerecha() {
+		setTranslateX(getTranslateX() + barraSpeed);
+	}
+
+	public void direccionIzquierda() {
+		setTranslateX(getTranslateX() - barraSpeed);
 	}
 }

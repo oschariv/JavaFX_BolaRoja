@@ -10,14 +10,15 @@ public class Ladrillo extends Rectangle {
 	private static final Color COLOR_FONDO_LADRILLO = Color.GREEN;
 	private static final Color COLOR_BORDE_LADRILLO = Color.BLACK;
 
-	private Rectangle ladrillo;
-
-	public Ladrillo() {
+	public Ladrillo(double posicionX, double posicionY) {
 		super();
 		setWidth(ANCHO_LADRILLO);
 		setHeight(ALTO_LADRILLO);
 		setFill(COLOR_FONDO_LADRILLO);
 		setStroke(COLOR_BORDE_LADRILLO);
+		setX(posicionX);
+		setY(posicionY);
+		setVisible(false);
 
 	}
 
@@ -38,7 +39,7 @@ public class Ladrillo extends Rectangle {
 	}
 
 	public void setItVisible(boolean b) {
-		ladrillo.setVisible(b);
+		this.setVisible(b);
 
 	}
 
