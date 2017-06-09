@@ -71,15 +71,13 @@ public class Game extends Application {
 		Label puntuacion = new Label("0");
 		root.getChildren().add(puntuacion);
 
-		// Ladrillos
+		// Creacion y Busqueda de solapamiento de Ladrillos
 		ladrillos = new ArrayList<>();
 		int numeroLadrillosAnidados = 0;
 		while (numeroLadrillosAnidados < NUMERO_LADRILLOS) {
-
 			boolean encontradoLadrilloValido = false;
 			while (!encontradoLadrilloValido) {
 				Ladrillo posibleLadrillo = new Ladrillo(ANCHO_PANTALLA, ALTO_PANTALLA);
-
 				int ladrilloActual = 0;
 				boolean solapamientoDetectado = false;
 				while (ladrilloActual < ladrillos.size() && !solapamientoDetectado) {
@@ -89,7 +87,7 @@ public class Game extends Application {
 					}
 					ladrilloActual++;
 				}
-				// Si hemos encontrado un ladrillo
+				// Si hemos encontrado un ladrillo Valido
 				if (!solapamientoDetectado) {
 					encontradoLadrilloValido = true;
 					posibleLadrillo.setItVisible(true);
@@ -104,7 +102,7 @@ public class Game extends Application {
 		root.getChildren().add(bola);
 		root.getChildren().add(barra);
 
-		// TECLADO:
+		// ACCIONES DEL TECLADO:
 		escena.setOnKeyPressed(event -> {
 			switch (event.getCode()) {
 			case LEFT:
@@ -130,13 +128,11 @@ public class Game extends Application {
 			}
 		});
 
+		// Creacion del keyFrame y su evento de accion
 		timeline.setAutoReverse(true);
 		final KeyFrame kf = new KeyFrame(Duration.millis(1.7), event -> {
 			// Desplazamiento de la bola.
-			// Desplazamiento en X
-			bola.movimientoEnX();
-			// Desplazamiento en Y
-			bola.movimientoEnY();
+			bola.mover();
 
 			// Desplazamiento Barra
 			if (goLeft) {
@@ -166,28 +162,28 @@ public class Game extends Application {
 			int minutos = tiempoEnSegundos / 60;
 			int segundos = tiempoEnSegundos % 60;
 
+			// mostramos el tiempo pasado con un label
 			tiempoPasado.setText(String.valueOf(minutos) + " : " + String.valueOf(segundos));
 			tiempoPasado.setLayoutX(15);
 			tiempoPasado.setLayoutY(ALTO_PANTALLA - 20);
 
 			// Desctruccion ladrillos
 			for (int i = 0; i < ladrillos.size(); i++) {
-				Ladrillo ladrilloAComprobar = ladrillos.get(i);
-				Shape interseccion = Shape.intersect(bola, ladrilloAComprobar);
-				if (interseccion.getBoundsInParent().getWidth() != -1) {
-					root.getChildren().remove(ladrilloAComprobar);
-					ladrillos.remove(ladrilloAComprobar);
-					bola.setBallSpeedY();
+				if (bola.chocaConLadrillo(ladrillos.get(i))) {
+					root.getChildren().remove(ladrillos.get(i));
+					ladrillos.remove(ladrillos.get(i));
 					puntos++;
 					i--;
 				}
 			}
+			// mostramos la puntuacion por destruir ladrillos
 			puntuacion.setText(String.valueOf(puntos));
 			puntuacion.setLayoutX(ANCHO_PANTALLA - 20);
 			puntuacion.setLayoutY(ALTO_PANTALLA - 20);
 
 		});
 
+		// gestion de la linea de tiempo
 		timeline.setCycleCount(Timeline.INDEFINITE);
 		timeline.getKeyFrames().add(kf);
 
@@ -195,6 +191,7 @@ public class Game extends Application {
 
 		escenario.show();
 
+		// cronometro para tiempo de juego
 		TimerTask cronometro = new TimerTask() {
 			@Override
 			public void run() {

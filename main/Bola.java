@@ -2,6 +2,7 @@ package main;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 
 public class Bola extends Circle {
 
@@ -44,14 +45,13 @@ public class Bola extends Circle {
 		return COLOR_BOLA;
 	}
 
-	public void movimientoEnX() {
+	public void mover() {
+		// movimiento en X
 		if (getBoundsInParent().getMinX() <= 0 || getBoundsInParent().getMaxX() >= anchoPantalla) {
 			setBallSpeedX();
 		}
 		setTranslateX(getTranslateX() + getBallSpeedX());
-	}
-
-	public void movimientoEnY() {
+		// movimiento en Y
 		if (getBoundsInParent().getMinY() <= 0) {
 			setBallSpeedY();
 		}
@@ -64,4 +64,14 @@ public class Bola extends Circle {
 		}
 	}
 
+	public boolean chocaConLadrillo(Ladrillo ladrillo) {
+		boolean colision = false;
+		Shape interseccion = Shape.intersect(this, ladrillo);
+		if (interseccion.getBoundsInParent().getWidth() != -1) {
+			colision = true;
+			setBallSpeedY();
+
+		}
+		return colision;
+	}
 }
