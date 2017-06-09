@@ -1,7 +1,6 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -54,8 +53,6 @@ public class Game extends Application {
 		escenario.setScene(escena);
 		escenario.setTitle("ARKANOID");
 
-		Random aleatorio = new Random();
-
 		// Inicializacion de la linea de tiempo
 		final Timeline timeline = new Timeline();
 
@@ -74,8 +71,6 @@ public class Game extends Application {
 		Label puntuacion = new Label("0");
 		root.getChildren().add(puntuacion);
 
-		// Centro de la bola
-
 		// Ladrillos
 		ladrillos = new ArrayList<>();
 		int numeroLadrillosAnidados = 0;
@@ -83,13 +78,7 @@ public class Game extends Application {
 
 			boolean encontradoLadrilloValido = false;
 			while (!encontradoLadrilloValido) {
-
-				// Poscion ladrillo aleatoria
-				int posXLadrillo = aleatorio.nextInt(ANCHO_PANTALLA - Ladrillo.getAnchoLadrillo());
-				int posYLadrillo = aleatorio.nextInt((ALTO_PANTALLA / 2) + Ladrillo.getAltoLadrillo());
-
-				Ladrillo posibleLadrillo = new Ladrillo(posXLadrillo, posYLadrillo);
-				posibleLadrillo.setVisible(false);
+				Ladrillo posibleLadrillo = new Ladrillo(ANCHO_PANTALLA, ALTO_PANTALLA);
 
 				int ladrilloActual = 0;
 				boolean solapamientoDetectado = false;
